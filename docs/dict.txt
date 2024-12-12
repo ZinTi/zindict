@@ -1,0 +1,57 @@
+ZinDict(dict)
+=== 用户手册(zh-CN) ===
+（1）参数模式
+运行程序时指定参数，程序执行后即结束。使用格式：
+    dict [参数1 参数2 …… 参数n]
+参数是你需要翻译的单词或词组，命令行以空格作为分割参数的依据，你可以使用直引号将含有空格的词组扩起来，或使用通配符 _ 代替空格。使用示例：
+    dict 'such as' "such as" such_as
+
+（2）交互模式
+未指定参数将进入交互模式。交互模式下，以符号“.”或“:”为首的字符串被认定为内建命令而执行，以“?”为首的字符串则是查询该命令的功能。
+所有命令的列表（大小写不敏感）：
+    help, manual    获取用户使用手册
+    clear, cls          清屏
+    exit, quit, e, q          离开交互模式
+    prompt  [NewPrompt> ] 修改交互模式下的提示符
+
+例如：
+    Eng> :prompt DICT> ^M
+    DICT> 
+   （此处的 ^M 代指键盘上的 <ENTER> 键）
+
+交互模式下，将整行字符串都当做查询内容，因此不支持命令行模式那种可以一次查询多个单词或词组的用法。并且不要使用直引号将含有空格的词组括起来，因为程序会将直引号当做单词或词组的组成部分。
+
+（3）近似匹配
+支持使用通配符 %% 和 _ 模糊匹配单词或词组，参数模式和交互模式下都支持。
+%% 通配符表示零个或多个字符。例如，word%% 匹配词典中以 word 开头的任何单词或词组。
+_ 通配符表示一个字符。例如，_ache 匹配词典中首字母任意，以 ache 结尾的任何单词。
+
+
+
+=== User Manual(en-US) ===
+(1) Parameter Mode
+Specify parameters when running the program, and the program will exit after execution. Usage format:
+    dict [param1 param2 ... paramN]
+The parameters are the words or phrases you want to translate. Parameters are separated by spaces in the command line. You can use single quotes to enclose phrases containing spaces, or use the wildcard _ to replace spaces. Example:
+    dict 'such as' "such as" such_as
+
+(2) Interactive Mode
+If no parameters are specified, the program will enter interactive mode. In interactive mode, any string starting with . or : is treated as a built-in command. A string starting with ? queries the function of the command.
+List of all commands (case-insensitive):
+    help, manual     Get the user manual
+    clear, cls     Clear the screen
+    exit, quit     Exit interactive mode
+    prompt [NewPrompt>]     Change the prompt in interactive mode
+
+For example:
+    Eng> :prompt DICT> ^M
+    DICT>
+(Here, ^M represents the <ENTER> key on the keyboard)
+
+In interactive mode, the entire input line is treated as a query, so you cannot query multiple words or phrases at once like in parameter mode. Do not use single quotes to enclose phrases with spaces, as the program will treat the quotes as part of the word or phrase.
+
+(3) Approximate 
+Wildcard symbols %% and _ are supported for fuzzy matching of words or phrases, both in parameter mode and interactive mode.
+
+%% wildcard represents zero or more characters. For example, word%% matches any word or phrase in the dictionary that starts with "word".
+_ wildcard represents a single character. For example, _ache matches any word in the dictionary that ends with "ache" and starts with any single character.ample, `_ache` matches any word in the dictionary that ends with "ache" and starts with any single character.
