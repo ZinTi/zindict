@@ -13,9 +13,13 @@
  * 
  */
 #define PROJ_NAME       "ZinDict"
-#define PROJ_VER        "0.1"
-#define PROJ_YEARS      "2023-2024"
-#define AUTHOR          "Mr. Zeng Lai"
+#ifdef _WIN32
+    #define PROJ_VER        "0.1.1-WinNT"
+#else
+    #define PROJ_VER        "0.1.1-GNU/Linux"
+#endif
+#define PROJ_YEARS      "2023-2025"
+#define AUTHOR          "Mr. ZENG Lai"
 #define CONTACT         "vip201@126.com"
 #define COMPILED        "(compiled "__TIME__", "__DATE__")"
 

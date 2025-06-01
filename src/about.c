@@ -20,7 +20,7 @@ void Help(const char* mPath, const char* qStr){
 
 void About(void){
 	printf("%s version %s %s\n", PROJ_NAME, PROJ_VER, COMPILED);
-	printf("Copyright (c) %s %s. Licensed under the GNU General Public License.\n", PROJ_YEARS, AUTHOR);
+	printf("Copyleft (c) %s %s. Licensed under the GNU General Public License.\n", PROJ_YEARS, AUTHOR);
     printf("Email: %s\n\n", CONTACT);
 }
 

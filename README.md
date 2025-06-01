@@ -1,4 +1,4 @@
-# ZinDict (version 0.1)
+# 📕 ZinDict 
 
 **ZinDict** 是一个轻量级的离线词典CLI程序，旨在提供快速、简便的英语单词查询体验。支持在 Windows 和 Linux 上运行。  
 
@@ -49,7 +49,7 @@ dict
 ## （四）项目目录结构
 ```
 zindict/
-├── bin/          # 可执行文件目录
+├── bin/          # 可执行文件目录（Release）
 ├── data/         # 离线词典目录
 ├── docs/         # 使用手册目录
 ├── include/      # 头文件目录

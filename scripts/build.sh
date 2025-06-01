@@ -15,7 +15,7 @@ if [ ! -d "$OUTPUT_DIR" ]; then
 fi
 
 # 编译源文件并输出到指定目录
-gcc -I"$ROOT_DIR/include" "$ROOT_DIR/src/"*.c -o "$OUTPUT_DIR/dict" -Os
+gcc -I"$ROOT_DIR/include" -I"$ROOT_DIR/third_party/sqlite-3.50.0/include" "$ROOT_DIR/src/"*.c -o "$OUTPUT_DIR/dict" -Os -L"$ROOT_DIR/third_party/sqlite-3.50.0/lib/linux_x86_64" -lsqlite3
 if [ $? -ne 0 ]; then
   echo "编译失败，请检查源文件是否存在以及语法是否正确。"
   exit 1

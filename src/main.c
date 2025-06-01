@@ -1,12 +1,12 @@
 /***********************************************************
-  * Copyright (c) 2024 Mr. Zeng Lai. All rights reserved.
+  * Copyleft (c) 2023-2025 Mr. ZENG Lai. All rights reserved.
   * 
   * Project: ZinDict
-  * Description: 英汉词典程序
-  * Version: 0.1
-  * Author: Mr. Zeng Lai (also known as Zin)
+  * Description: 英汉词典
+  * Version: 0.1.1
+  * Author: Mr. ZENG Lai (Zin)
   * Contact: vip201@126.com
-  * Last Modified: Thu Oct 03 00:47:51 2024
+  * Last Modified: Sun Jun  1 13:36:30 2025
   * 
  ***********************************************************/
 #include "main.h"
@@ -16,14 +16,86 @@
 
 #define MAX_PATH 260
 #ifdef _WIN32
-   #define COMMAND_CLEAR "CLS"
+    #define COMMAND_CLEAR                "CLS"
+    #define DATABASE_FILENAME            "\\data\\dict.db"
 #else
-   #define COMMAND_CLEAR "clear"
+    #define COMMAND_CLEAR                "clear"
+    #define DATABASE_FILENAME            "/data/dict.db"
 #endif
 
 /**
- * 修改输入输出代码页为UTF-8（Windows）
+ * 修改 CodePage 为UTF-8（Windows）
  */
+int ChCP(unsigned int newInputCP, unsigned int newOutputCP);
+
+int main(int argc, char* argv[]){
+   ChCP(65001, 65001);
+
+   char* homePath = (char*)malloc(MAX_PATH);
+   char* dbFilePath = (char*)malloc(MAX_PATH);
+   if(SetHomePath(homePath)){ // return != 0
+      exit(-1);
+   }else{ // return == 0
+      strcpy(dbFilePath, homePath);
+   }
+
+   strcat(dbFilePath, DATABASE_FILENAME);
+
+   PROMPT prompt;
+   strcpy(prompt.text, DEFAULT_PROMPT);
+   prompt.color = defaultColor;
+
+   if(argc>1){
+      for(int i=1;i<argc;i++){
+         QueryTheWord(argv[i], dbFilePath);
+      }
+   }else{
+      About();
+      printf("Enter \".help\" for usage hints.\n\n");
+
+      char yourWord[MAX_SIZE_OF_WORD];
+      while(1){
+         ColorPrintf(defaultColor, (const char*)prompt.text);
+         if(fgets(yourWord, sizeof(yourWord), stdin)){
+            yourWord[strcspn(yourWord, "\n")] = '\0'; // 去除换行符
+         }
+
+         if('.'==yourWord[0] || ':'==yourWord[0]){
+            if(!StrCmpIgnoreCase("exit", yourWord+1) || !StrCmpIgnoreCase("quit", yourWord+1) || !StrCmpIgnoreCase("e", yourWord+1) || !StrCmpIgnoreCase("q", yourWord+1)){
+               ColorPrintf(defaultColor, "Bye!\n");
+               break;
+            }else if(!StrCmpIgnoreCase("clear", yourWord+1) || !StrCmpIgnoreCase("cls", yourWord+1)){
+               int ret = system(COMMAND_CLEAR);
+               continue;
+            }else if(!StrCmpIgnoreCase("help", yourWord+1) || !StrCmpIgnoreCase("manual", yourWord+1)){
+               Help(argv[0], NULL);
+               continue;
+            }else if(!StrNCmpIgnoreCase("prompt", yourWord+1, 6)){
+               if(strlen(yourWord)==7){
+                  strcpy(prompt.text, DEFAULT_PROMPT);
+                  printf("Returning to default PROMPT of "DEFAULT_PROMPT"\n");
+               }else{
+                  strcpy(prompt.text, yourWord+8);
+                  printf("PROMPT set to '%s'\n", prompt.text);
+               }
+               continue;
+            }else{
+               ColorPrintf(invalidColor, "Invalid command!\n");
+            }
+
+         }else if('?'==yourWord[0]){
+            // 查询命令
+            Help(argv[0], yourWord);
+            continue;
+         }else{
+            QueryTheWord(yourWord, dbFilePath);
+         }
+      }
+   }
+   ChCP(0, 0); // 恢复
+   return 0;
+}
+
 int ChCP(unsigned int newInputCP, unsigned int newOutputCP){
 #ifdef _WIN32
    static unsigned int oldInputCP;
@@ -47,82 +119,6 @@ int ChCP(unsigned int newInputCP, unsigned int newOutputCP){
    return 0;
 }
 
-
-int main(int argc, char* argv[]){//gcc -finput-charset=UTF-8 -fexec-charset=GB2312 trans.c sqlite3.c -o trans.exe
-   ChCP(65001, 65001);
-
-   char* homePath = (char*)malloc(MAX_PATH);
-   char* dbFilePath = (char*)malloc(MAX_PATH);
-   if(SetHomePath(homePath)){ // return != 0
-      exit(-1);
-   }else{ // return == 0
-      strcpy(dbFilePath, homePath);
-   }
-
-   #ifdef _WIN32
-      strcat(dbFilePath, "\\data\\dict.db");
-   #else
-      strcat(dbFilePath, "/data/dict.db");
-   #endif
-
-   PROMPT prompt;
-   strcpy(prompt.text, DefaultPrompt);
-   prompt.color = defaultColor;
-
-   if(argc>1){
-      for(int i=1;i<argc;i++){
-         QueryTheWord(argv[i], dbFilePath);
-      }
-   }else{
-      About();
-      printf("Enter \".help\" for usage hints.\n\n");
-
-      char yourWord[MaxSizeOfWord];
-      while(1){
-         ColorPrintf(defaultColor, (const char*)prompt.text);
-         if(fgets(yourWord, sizeof(yourWord), stdin)){
-            yourWord[strcspn(yourWord, "\n")] = '\0'; // 去除换行符
-         }
-
-         if('.'==yourWord[0] || ':'==yourWord[0]){
-            if(!StrCmpIgnoreCase("exit", yourWord+1) || !StrCmpIgnoreCase("quit", yourWord+1) || !StrCmpIgnoreCase("e", yourWord+1) || !StrCmpIgnoreCase("q", yourWord+1)){
-               ColorPrintf(defaultColor, "Bye!\n");
-               break;
-            }else if(!StrCmpIgnoreCase("clear", yourWord+1) || !StrCmpIgnoreCase("cls", yourWord+1)){
-               int ret = system(COMMAND_CLEAR);
-               continue;
-            }else if(!StrCmpIgnoreCase("help", yourWord+1) || !StrCmpIgnoreCase("manual", yourWord+1)){
-               Help(argv[0], NULL);
-               continue;
-            }else if(!StrNCmpIgnoreCase("prompt", yourWord+1, 6)){
-               if(strlen(yourWord)==7){
-                  strcpy(prompt.text, DefaultPrompt);
-                  printf("Returning to default PROMPT of "DefaultPrompt"\n");
-               }else{
-                  strcpy(prompt.text, yourWord+8);
-                  printf("PROMPT set to '%s'\n", prompt.text);
-               }
-               continue;
-            }else{
-               ColorPrintf(invalidColor, "Invalid command!\n");
-            }
-
-         }else if('?'==yourWord[0]){
-            // 查询命令
-            Help(argv[0], yourWord);
-            continue;
-         }else{
-            QueryTheWord(yourWord, dbFilePath);
-         }
-      }
-   }
-   ChCP(0, 0); // 恢复
-   return 0;
-}
-
-/**
- * 
- */
 static int ShowResult_callback(void *data, int argc, char **argv, char **azColName){
    //fprintf(stderr, "%s", (const char*)data);
    unsigned short oldColor;
@@ -170,7 +166,7 @@ int QueryTheWord(const char* word, const char* DB){
    }
 
    /* Create SQL statement */
-   sql = (char*)malloc(MaxSizeOfSQL);
+   sql = (char*)malloc(MAX_SIZE_OF_SQL);
    sprintf(sql, "SELECT word_name AS 词语, ph_en AS 英音, ph_am AS 美音, means AS 释义 FROM iciba WHERE word_name LIKE '%s'", word);
 
    /* Execute SQL statement */

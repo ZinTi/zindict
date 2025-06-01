@@ -18,7 +18,7 @@
 #endif
 
 // 1.3、第三方库
-#include "sqlite3.h"
+#include <sqlite3.h>
 
 // 1.4、项目其他头文件
 #include "color.h"
@@ -26,22 +26,18 @@
 
 /*------------------（二） 定义项目宏常量 -----------------------*/
 
-#define MaxSizeOfSQL                    200
-#define MaxSizeOfWord                   100
-#define DefaultPrompt                   "Eng> "
+#define MAX_SIZE_OF_SQL                     200
+#define MAX_SIZE_OF_WORD                    100
+#define DEFAULT_PROMPT                      "Eng> "
 
 /*------------------（三） 全局变量与定义结构体类型 -----------------------*/
-/**
- * 
- */
-
 
 /**
  * text: CLI提示符文字
  * color: 结构体TextColor类型，包含两个枚举类型元素——前景色和背景色
  */
 typedef struct{
-   char text[MaxSizeOfWord];
+   char text[MAX_SIZE_OF_WORD];
    TextColor color;
 }PROMPT;
 
@@ -56,21 +52,20 @@ TextColor lightblueColor = {COLOR_BRIGHT_BLUE, COLOR_NONE}; //
 
 /*------------------（四） 声明函数原型 -----------------------*/
 
-
 /**
- * 回调函数，显示查询结果
- * @data 第一个参数
- * @argc 参数数量
- * @argv 参数值数组
- * @azColName 列名
+ * 回调函数：打印查询结果
+ * @param data 第一个参数
+ * @param argc 参数数量
+ * @param argv 参数值数组
+ * @param azColName 列名
  * @return 返回值int型
  */
 static int ShowResult_callback(void *data, int argc, char **argv, char **azColName);
 
 /**
  * 在词典中查询单词或词组
- * @word 待查单词
- * @DB SQLite3数据库路径
+ * @param word 待查单词
+ * @param DB SQLite3数据库路径
  */
 int QueryTheWord(const char* word, const char* DB);
 
