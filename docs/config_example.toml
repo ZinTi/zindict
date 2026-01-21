@@ -1,0 +1,31 @@
+[database]
+# The path to the dictionary database file.
+path = "D:/app/zindict-v*.*.*-20YYMMDD-windows-amd64-mingw/data/dict.db"
+main_table = "iciba"
+
+[readline.history]
+enable = true
+# The path to the readline history file.
+path = "D:/app/zindict-v*.*.*-20YYMMDD-windows-amd64-mingw/data/history.txt"
+max_size = 200
+
+[readline.autocomplete]
+enable = true
+max_suggestions = 10
+
+[prompt]
+text = "Eng> "
+color = { fg = "CLR_BRT_CYAN", bg = "CLR_NONE" }
+
+[theme]
+enable = true
+word_echo = { fg = "CLR_BRT_GREEN", bg = "CLR_NONE" }
+error = { fg = "CLR_BRT_RED", bg = "CLR_NONE" }
+word_name.header = { fg = "CLR_BRT_MAGENTA", bg = "CLR_NONE" }
+word_name.value = { fg = "CLR_BLUE", bg = "CLR_BRT_YELLOW" }
+ph_en.header = { fg = "CLR_GRAY", bg = "CLR_NONE" }
+ph_en.value = { fg = "CLR_WHITE", bg = "CLR_NONE" }
+ph_am.header = { fg = "CLR_GRAY", bg = "CLR_NONE" }
+ph_am.value = { fg = "CLR_WHITE", bg = "CLR_NONE" }
+means.header = { fg = "CLR_BLUE", bg = "CLR_NONE" }
+means.value = { fg = "CLR_WHITE", bg = "CLR_NONE" }

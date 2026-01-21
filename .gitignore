@@ -1,0 +1,40 @@
+################# IDE #################
+.vscode/
+.clion/
+.idea/
+
+################ Common ################
+*.tar.gz
+*.tar.xz
+*.tar.bz2
+*.tgz
+*.txz
+*.tbz2
+*.zip
+*.7z
+*.rar
+
+*.exe
+*.dll
+*.lib
+*.so
+*.a
+*.o
+*.obj
+*.out
+*.log
+
+################# Rust #################
+/target
+*.rlib
+
+
+################## C ##################
+
+/build/
+/bin/
+/lib/
+
+zindict-v*/
+cmake-*/
+

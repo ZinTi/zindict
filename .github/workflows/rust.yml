@@ -1,0 +1,167 @@
+name: Rust
+
+on:
+  push:
+    branches: [ "main" ]
+    # tags:
+    #   - "v*.*.*"
+  pull_request:
+    branches: [ "main" ]
+    # tags:
+    #   - "v*.*.*"
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    strategy: # 构建策略
+      fail-fast: false # false: 矩阵中某一任务失败，其他任务继续执行, true: 矩阵中某一任务失败，全部停止执行
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        c_compiler: [gcc, clang, cl]
+        include:
+          - {os: ubuntu-latest,  c_compiler: gcc,   cpp_compiler: g++,     rust_platform: x86_64-unknown-linux-gnu} # 1/5 Linux + GCC
+          - {os: ubuntu-latest,  c_compiler: clang, cpp_compiler: clang++, rust_platform: x86_64-unknown-linux-gnu} # 2/5 Linux + Clang
+          - {os: windows-latest, c_compiler: cl,    cpp_compiler: cl,      rust_platform: x86_64-pc-windows-msvc}   # 3/5 Windows + MSVC
+          - {os: windows-latest, c_compiler: gcc,   cpp_compiler: g++,     rust_platform: x86_64-pc-windows-gnu}    # 4/5 Windows + GCC(MinGW-w64)
+          - {os: macos-latest,   c_compiler: clang, cpp_compiler: clang++, rust_platform: aarch64-apple-darwin}     # 5/5 macOS + Clang
+        exclude: [
+          {os: windows-latest, c_compiler: clang},
+          {os: ubuntu-latest,  c_compiler: cl},
+          {os: macos-latest,   c_compiler: gcc},
+          {os: macos-latest,   c_compiler: cl},
+        ]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
+      - name: Set reusable strings
+        id: my_str
+        shell: bash
+        run: |
+            # github workspace path
+            workspace_dir="${{ github.workspace }}"       # 从GitHub上下文获取路径并标准化
+            workspace_dir="${workspace_dir//\\//}"        # 替换所有反斜杠为正斜杠
+            workspace_dir="${workspace_dir%/}"            # 移除路径末尾的斜杠（若有）
+
+            # get project version
+            proj_version=$(awk -F'"' '/^version[[:space:]]*=/ {print $2}' ${workspace_dir}/Cargo.toml)
+            if [ -z "$proj_version" ]; then
+                proj_version=$(grep '^version' ${workspace_dir}/Cargo.toml | sed 's/.*"\(.*\)".*/\1/')
+            fi
+            echo "project version: $proj_version"
+
+            # github actions env
+            echo "WORKSPACE_DIR=$workspace_dir" >> "$GITHUB_OUTPUT"
+            echo "PROJECT_VERSION=$proj_version" >> "$GITHUB_OUTPUT"
+
+      - name: Build on Linux
+        shell: bash
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        run: |
+          rustup show active-toolchain
+
+          cd ${{ github.workspace }}
+
+          if [[ "${{ matrix.c_compiler }}" == "gcc" ]]; then
+            sudo chmod +x ./build-linux-gcc.sh
+            ./build-linux-gcc.sh
+          elif [[ "${{ matrix.c_compiler }}" == "clang" ]]; then
+            sudo chmod +x ./build-linux-clang.sh
+            ./build-linux-clang.sh
+          else
+            echo "Unsupported combination of OS and C compiler"
+          fi
+
+      - name: Build on Windows
+        shell: pwsh
+        if: ${{ matrix.os == 'windows-latest' }}
+        run: |
+          rustup show active-toolchain
+          . .\scripts\rust_toolchain_windows.ps1 # 点源操作符运行脚本，函数会保留在当前会话中
+          Set-RustToolchain -TargetVersion ${{ matrix.rust_platform }} # 调用函数，安装适配的 rust 版本
+          rustup show active-toolchain
+
+          cd ${{ github.workspace }}
+
+          if ( "${{ matrix.c_compiler }}" -eq "cl" ) {
+            .\build-windows-msvc.ps1
+          } elseif ( "${{ matrix.c_compiler }}" -eq "gcc" ) {
+            .\build-windows-mingw.ps1
+          } else {
+            echo "Unsupported combination of OS and C compiler"
+          }
+
+      - name: Build on macOS
+        shell: sh
+        if: ${{ matrix.os =='macos-latest' }}
+        run: |
+          rustup show active-toolchain
+
+          cd ${{ github.workspace }}
+
+          if [[ "${{ matrix.c_compiler }}" == "clang" ]]; then
+            chmod +x ./build-macos-clang.zsh
+            ./build-macos-clang.zsh
+          else
+            echo "Unsupported combination of OS and C compiler"
+          fi
+      
+      # - name: Run tests
+      #   run: cargo test --verbose
+
+      - name: Package
+        shell: bash
+        run: |
+          cd ${{ steps.my_str.outputs.WORKSPACE_DIR }}
+
+          # 使用ls查找匹配的目录并获取第一个
+          dir_name=$(ls -d zindict-v* 2>/dev/null | head -n 1)
+
+          # 移除末尾的斜杠
+          if [[ -n "$dir_name" ]]; then
+            dir_name=${dir_name%/}
+            echo "找到匹配的目录: ${dir_name}"
+
+            if [ "$RUNNER_OS" == "Windows" ]; then
+              7z a -r ${dir_name}.7z ${dir_name}
+            else
+              tar -cJvf ${dir_name}.tar.xz ${dir_name}
+            fi
+
+          else
+            echo "错误：没有找到匹配的目录"
+          fi
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: zindict-${{ matrix.os }}-${{ matrix.c_compiler }}
+          path: |
+            ${{ steps.my_str.outputs.WORKSPACE_DIR }}/*.tar.xz
+            ${{ steps.my_str.outputs.WORKSPACE_DIR }}/*.7z
+
+      - name: Generate Release Notes
+        shell: bash
+        run: |
+          utc_datetime_ms=$(date -u +"%Y-%m-%d %H:%M:%S.%3N")
+          cd ${{ steps.my_str.outputs.WORKSPACE_DIR }}
+          echo "# Release Notes" > release_notes.md
+          echo "## [v${{ steps.my_str.outputs.PROJECT_VERSION }}] - ${utc_datetime_ms}" >> release_notes.md
+          cat ${{ steps.my_str.outputs.WORKSPACE_DIR }}/.github/RELEASE.md >> release_notes.md
+
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.my_str.outputs.PROJECT_VERSION }}
+          body_path: release_notes.md
+          files: |
+            ${{ steps.my_str.outputs.WORKSPACE_DIR }}/*.tar.xz
+            ${{ steps.my_str.outputs.WORKSPACE_DIR }}/*.7z
+          overwrite_files: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,0 +1,27 @@
+=== User Manual(en-US) ===
+1. Parameter Mode
+Specify parameters when running the program, and the program will exit after execution. Usage format:
+    dict [param1 param2 ... paramN]
+The parameters are the words or phrases you want to translate. Parameters are separated by spaces in the command line. You can use single quotes to enclose phrases containing spaces, or use the wildcard _ to replace spaces. Example:
+    dict 'such as' "such as" such_as
+
+2. Interactive Mode
+If no parameters are specified, the program will enter interactive mode. In interactive mode, any string starting with . or : is treated as a built-in command. A string starting with ? queries the function of the command.
+List of all commands (case-insensitive):
+    help, manual            Get the user manual
+    clear, cls              Clear the screen
+    exit, quit              Exit interactive mode
+    prompt [NewPrompt>]     Change the prompt in interactive mode
+
+For example:
+    Eng> :prompt DICT> ^M
+    DICT>
+(Here, ^M represents the <ENTER> key on the keyboard)
+
+In interactive mode, the entire input line is treated as a query, so you cannot query multiple words or phrases at once like in parameter mode. Do not use single quotes to enclose phrases with spaces, as the program will treat the quotes as part of the word or phrase.
+
+3. Approximate 
+Wildcard symbols % and _ are supported for fuzzy matching of words or phrases, both in parameter mode and interactive mode.
+
+% wildcard represents zero or more characters. For example, word% matches any word or phrase in the dictionary that starts with "word".
+_ wildcard represents a single character. For example, _ache matches any word in the dictionary that ends with "ache" and starts with any single character.

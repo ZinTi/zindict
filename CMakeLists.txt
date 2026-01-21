@@ -1,41 +1,40 @@
-cmake_minimum_required(VERSION 3.12)
-project(ZinDict LANGUAGES C)
+cmake_minimum_required(VERSION 3.20)
+project(ZinDict LANGUAGES C VERSION 0.1.1)  # 版本号
 
-# 设置C标准
-set(CMAKE_C_STANDARD 11)
-set(CMAKE_C_STANDARD_REQUIRED ON)
+# 定义统一版本号变量（所有子项目共享）
+set(BINHUB_VERSION ${PROJECT_VERSION})
 
-# 设置目标平台子目录
+# 使用UTC时间
+string(TIMESTAMP UTC_DATE "%Y%m%d" UTC)
+
+# 设置平台信息（全小写）
+# 项目名称-v版本号-编译日期-操作系统-处理器架构-编译器
+string(TOLOWER
+    "${PROJECT_NAME}-v${PROJECT_VERSION}-${UTC_DATE}-${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}-${CMAKE_C_COMPILER_ID}" INSTALL_ROOT_DIR
+)
+
+# 设置所有库和可执行文件的默认输出目录（若子项目没有设置输出目录，则使用此默认目录）
 if(WIN32)
-    set(THIRD_PARTY_PLATFORM "windows_x86_64")
-    set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")  # MinGW-w64 静态库后缀
-elseif(UNIX AND CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
-    set(THIRD_PARTY_PLATFORM "linux_x86_64")
+    set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib) # 静态库 (.a, .lib) 和 导入库 (.dll.a, .lib)
+    # set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/${INSTALL_ROOT_DIR}/bin) # 对 Windows 无效
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/${INSTALL_ROOT_DIR}/bin) # 运行时文件 (.exe, .dll)
+elseif (UNIX)
+    set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib) # 静态库 (.a)
+    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/${INSTALL_ROOT_DIR}/bin) # 动态库 (.so)
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/${INSTALL_ROOT_DIR}/bin) # 可执行文件
+else()
+    message(WARNING "Unknown platform")
+    set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib)
+    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/${INSTALL_ROOT_DIR}/bin)
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/${INSTALL_ROOT_DIR}/bin)
 endif()
 
-# SQLite3 静态库路径
-set(SQLite3_LIBRARIES
-        ${CMAKE_SOURCE_DIR}/third_party/sqlite-3.50.0/lib/${THIRD_PARTY_PLATFORM}
-)
+# 引入子项目
+# 0. 库
+add_subdirectory(third_party/binhub)
 
-# 生成可执行文件
-add_executable(dict
-        src/main.c
-        src/about.c
-        src/color.c
-        src/str.c
-)
-
-# 包含项目头文件和第三方库头文件
-target_include_directories(dict PRIVATE
-        include
-        ${CMAKE_SOURCE_DIR}/third_party/sqlite-3.50.0/include
-)
-
-# 链接静态库
-target_link_directories(dict
-        PUBLIC ${SQLite3_LIBRARIES}
-)
-target_link_libraries(dict
-        PRIVATE sqlite3                     # libsqlite3.a
+# 1. 可执行程序
+add_compile_definitions(
+    PROJ_VER="${PROJECT_VERSION}"
+    PROJ_YEARS="2023-2026"
 )
