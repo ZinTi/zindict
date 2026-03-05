@@ -131,6 +131,7 @@ int binhub_cprintf(binhub_tcolor_t color, const char* format, ...) {
 
     // 重置颜色
     printf("\033[0m");
+    fflush(stdout); // 刷新缓冲区
 #endif
     return ret;
 }
